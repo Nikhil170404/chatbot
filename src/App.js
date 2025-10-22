@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Header from './components/Header';
 import WelcomeScreen from './components/WelcomeScreen';
 import ChatMessage from './components/ChatMessage';
@@ -10,16 +10,15 @@ import { checkEnvVariables } from './utils/envDebug';
 import './App.css';
 
 /**
- * Main App Component
- * Stock Assistant - AI-powered Indian stock information chatbot
+ * Main App Component with enhanced loading states
  */
 function App() {
-  const { messages, isLoading, sendMessage, clearMessages } = useChat();
+  const { messages, isLoading, loadingStatus, sendMessage, clearMessages } = useChat();
   const [configError, setConfigError] = useState(null);
+  const chatContainerRef = useRef(null);
 
   // Validate API configuration on mount
   useEffect(() => {
-    // Debug environment variables
     checkEnvVariables();
 
     const validation = validateConfig();
@@ -28,6 +27,15 @@ function App() {
       console.error('Configuration errors:', validation.errors);
     }
   }, []);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      setTimeout(() => {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }, 100);
+    }
+  }, [messages, isLoading]);
 
   /**
    * Handle stock selection from welcome screen
@@ -41,7 +49,6 @@ function App() {
    * Handle message send from input
    */
   const handleSend = (input, stockSymbol) => {
-    // Extract stock name from input if possible
     sendMessage(input, stockSymbol, '');
   };
 
@@ -49,7 +56,7 @@ function App() {
     <div className="app">
       <Header onClear={clearMessages} />
 
-      <div className="chat-container">
+      <div className="chat-container" ref={chatContainerRef}>
         {messages.length === 0 ? (
           configError ? (
             <div className="error-container">
@@ -76,7 +83,16 @@ function App() {
             {messages.map((msg, i) => (
               <ChatMessage key={i} message={msg} />
             ))}
-            {isLoading && <LoadingIndicator />}
+            {isLoading && (
+              <div className="loading-section">
+                <LoadingIndicator message={loadingStatus || 'Processing'} />
+                {loadingStatus && (
+                  <div className="loading-status">
+                    <small>{loadingStatus}</small>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
