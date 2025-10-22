@@ -13,12 +13,52 @@ export const sendChatRequest = async (messages, userInput, stockContext = '') =>
     throw new Error('❌ OpenRouter API key not configured');
   }
 
-  const systemPrompt = `You are an expert on Indian stocks (NSE/BSE).
-    Answer questions about companies like Reliance, TCS, HDFC Bank, Infosys, etc.
-    Use rupees (₹) for prices. Be concise, professional, and helpful.
-    If real data is provided, use it. Otherwise, rely on your knowledge up to 2024.
-    Never give financial advice. Say "I am not a financial advisor" if asked for advice.
-    Format responses clearly with bullet points where helpful.`;
+  const currentDate = new Date().toLocaleDateString('en-IN', { 
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const systemPrompt = `🔴 YOU MUST FOLLOW THESE RULES:
+
+TODAY'S DATE: ${currentDate}
+
+CRITICAL - REAL DATA PROVIDED:
+Real-time market data is provided below this prompt. THIS IS YOUR PRIMARY INFORMATION SOURCE.
+YOU MUST USE THIS DATA FIRST - NOT YOUR TRAINING DATA.
+
+YOUR INSTRUCTIONS:
+1. ⚠️ STOP: Do NOT use any prices or data from your training (before 2025)
+2. ✅ ONLY: Use the provided real-time context data
+3. 📊 REFERENCE: Every fact must cite the provided source
+4. 📅 DATE: Always show TODAY'S DATE: ${currentDate}
+5. ⏰ TIME: Include timestamps from the provided data
+6. 💯 COMPLETE: Use ALL the provided information, not just snippets
+
+RESPONSE FORMAT:
+• Start with "🔴 LIVE ${currentDate} DATA"
+• Include all 4 categories: Price, Market, Performance, Analysis
+• List multiple sources (10+) from provided data
+• Bold all prices with ₹ symbol
+• Show source attribution for EVERY data point
+• Include full context from provided sources
+
+FORBIDDEN:
+❌ Do NOT say "as of my knowledge cutoff"
+❌ Do NOT use old 2024/2023 dates
+❌ Do NOT ignore provided real data
+❌ Do NOT give short responses when long data provided
+❌ Do NOT make up data - use ONLY what's provided
+
+REQUIRED:
+✅ Respond with 3000+ characters (you have up to 4096)
+✅ Use ALL 15+ sources provided
+✅ Include ALL 4 data categories
+✅ Use current ${currentDate} date
+✅ Add "I am NOT a financial advisor" disclaimer
+
+The provided data below is YOUR TRUTH. Use it fully.`;
 
   const requestBody = {
     model: "tngtech/deepseek-r1t2-chimera:free",
@@ -27,8 +67,8 @@ export const sendChatRequest = async (messages, userInput, stockContext = '') =>
       ...messages.map(m => ({ role: m.role, content: m.content })),
       { role: "user", content: userInput + stockContext }
     ],
-    max_tokens: 1500,
-    temperature: 0.7,
+    max_tokens: 4096,  // INCREASED FROM 1500 TO MAX
+    temperature: 0.5,  // LOWERED for more factual responses
     top_p: 0.95,
     frequency_penalty: 0,
     presence_penalty: 0
@@ -37,8 +77,10 @@ export const sendChatRequest = async (messages, userInput, stockContext = '') =>
   try {
     console.log('📤 Sending request to OpenRouter...');
     console.log('   Model: tngtech/deepseek-r1t2-chimera:free');
-    console.log('   Max tokens: 1500');
+    console.log('   Max tokens: 4096 (MAXIMUM)');
+    console.log('   Temperature: 0.5 (factual)');
     console.log('   Message count:', requestBody.messages.length);
+    console.log('   Current Date:', currentDate);
 
     const startTime = Date.now();
 
@@ -52,7 +94,7 @@ export const sendChatRequest = async (messages, userInput, stockContext = '') =>
           'HTTP-Referer': 'https://indian-stock-assistant.vercel.app',
           'X-Title': 'Indian Stock Assistant'
         },
-        timeout: 45000 // 45 second timeout
+        timeout: 60000 // INCREASED from 45s to 60s for longer responses
       }
     );
 
@@ -161,7 +203,7 @@ export const sendChatRequest = async (messages, userInput, stockContext = '') =>
 
     // Handle timeout
     if (error.code === 'ECONNABORTED') {
-      throw new Error('❌ Request timeout (45s). OpenRouter took too long to respond. Try again.');
+      throw new Error('❌ Request timeout (60s). OpenRouter took too long to respond. Try again.');
     }
 
     // Handle network errors

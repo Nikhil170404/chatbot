@@ -1,12 +1,11 @@
 import { 
   searchWithBackend, 
-   
   getStockInformation,
   getMarketNews 
 } from './backendService';
 
 /**
- * Fetch real-time stock data and news using DuckDuckGo backend
+ * Fetch real-time stock data and news using DuckDuckGo backend - 2025 LATEST
  * @param {string} symbol - Stock symbol (e.g., "RELIANCE.BSE")
  * @param {string} name - Stock name (e.g., "Reliance Industries")
  * @returns {Promise<Object|null>} Stock data with real news
@@ -17,7 +16,7 @@ export const fetchStockDataFromWeb = async (symbol, name) => {
   const cleanSymbol = symbol ? symbol.replace(/\.(BSE|NS|BO)$/i, '') : '';
   const companyName = name || cleanSymbol;
 
-  console.log('📊 Fetching REAL stock data for:', companyName, '(' + cleanSymbol + ')');
+  console.log('📊 Fetching REAL 2025 LATEST stock data for:', companyName, '(' + cleanSymbol + ')');
 
   try {
     // Get comprehensive stock information from backend
@@ -32,12 +31,13 @@ export const fetchStockDataFromWeb = async (symbol, name) => {
       symbol: cleanSymbol,
       name: companyName,
       timestamp: stockInfo.timestamp,
-      source: 'DuckDuckGo Backend - Real Data',
+      date: stockInfo.date,
+      source: '🔴 LIVE 2025 - DuckDuckGo Backend Real Data',
       
-      // Price Information
+      // Price Information - 2025 Latest
       priceInfo: {
         snippet: stockInfo.price.snippet,
-        sources: stockInfo.price.results.map(r => ({
+        sources: stockInfo.price.results.slice(0, 5).map(r => ({
           title: r.title,
           snippet: r.snippet,
           url: r.link,
@@ -45,10 +45,10 @@ export const fetchStockDataFromWeb = async (symbol, name) => {
         }))
       },
 
-      // Company Information
-      companyInfo: {
-        snippet: stockInfo.info.snippet,
-        sources: stockInfo.info.results.map(r => ({
+      // Market Data - Today's 2025
+      marketInfo: {
+        snippet: stockInfo.market.snippet,
+        sources: stockInfo.market.results.slice(0, 4).map(r => ({
           title: r.title,
           snippet: r.snippet,
           url: r.link,
@@ -56,10 +56,21 @@ export const fetchStockDataFromWeb = async (symbol, name) => {
         }))
       },
 
-      // Analysis
+      // Performance - 2025 Latest
+      performanceInfo: {
+        snippet: stockInfo.performance.snippet,
+        sources: stockInfo.performance.results.slice(0, 3).map(r => ({
+          title: r.title,
+          snippet: r.snippet,
+          url: r.link,
+          domain: new URL(r.link).hostname
+        }))
+      },
+
+      // Analysis - 2025 Latest
       analysisInfo: {
         snippet: stockInfo.analysis.snippet,
-        sources: stockInfo.analysis.results.map(r => ({
+        sources: stockInfo.analysis.results.slice(0, 3).map(r => ({
           title: r.title,
           snippet: r.snippet,
           url: r.link,
@@ -67,7 +78,7 @@ export const fetchStockDataFromWeb = async (symbol, name) => {
         }))
       },
 
-      // All sources combined
+      // All sources combined - MAXIMUM CONTEXT
       sources: stockInfo.allSources.map(r => ({
         title: r.title,
         snippet: r.snippet,
@@ -77,6 +88,8 @@ export const fetchStockDataFromWeb = async (symbol, name) => {
     };
 
     console.log('✅ Stock data retrieved with', formattedResponse.sources.length, 'sources');
+    console.log('📅 Date:', formattedResponse.date);
+    console.log('🔴 LIVE 2025 DATA - Maximum Context Enabled');
     return formattedResponse;
   } catch (error) {
     console.error('❌ Stock data fetch error:', error.message);
@@ -85,19 +98,19 @@ export const fetchStockDataFromWeb = async (symbol, name) => {
 };
 
 /**
- * Search for stocks
+ * Search for stocks - 2025 LATEST
  * @param {string} query - Search query
  * @returns {Promise<Array>} Search results
  */
 export const searchStocks = async (query) => {
   try {
-    console.log('🔍 Searching for stocks:', query);
+    console.log('🔍 Searching for stocks 2025 latest:', query);
     
-    const results = await searchWithBackend(`${query} stock NSE BSE`);
+    const results = await searchWithBackend(`${query} stock 2025 latest NSE BSE today`);
     
     // Parse stock symbols from results
     const stocks = [];
-    for (const result of results.slice(0, 10)) {
+    for (const result of results.slice(0, 15)) {
       const symbolMatch = result.title.match(/([A-Z]+(?:\.[A-Z]+)?)/);
       if (symbolMatch) {
         stocks.push({
@@ -118,13 +131,13 @@ export const searchStocks = async (query) => {
 };
 
 /**
- * Get market context and news
+ * Get market context and news - 2025 LATEST
  * @param {string} query - Market query
  * @returns {Promise<string>} Market information formatted
  */
-export const getMarketContext = async (query = 'Indian stock market news today') => {
+export const getMarketContext = async (query = 'Indian stock market news today 2025 latest') => {
   try {
-    console.log('📰 Getting market news:', query);
+    console.log('📰 Getting market news 2025 latest:', query);
     
     const newsResults = await getMarketNews(query);
     
@@ -133,12 +146,15 @@ export const getMarketContext = async (query = 'Indian stock market news today')
     }
 
     // Format market news
-    let marketInfo = '📰 **Latest Market News:**\n\n';
-    newsResults.slice(0, 5).forEach((news, index) => {
+    let marketInfo = '📰 **Latest Market News (2025):**\n\n';
+    newsResults.slice(0, 10).forEach((news, index) => {
       marketInfo += `${index + 1}. **${news.title}**\n`;
       marketInfo += `   ${news.snippet}\n`;
       marketInfo += `   🔗 [Read more](${news.link})\n\n`;
     });
+
+    marketInfo += `\n📅 **Retrieved:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n`;
+    marketInfo += `🔴 **Status:** LIVE 2025 Data`;
 
     return marketInfo;
   } catch (error) {
@@ -166,17 +182,17 @@ export const fetchArticleContent = async (url) => {
 };
 
 /**
- * Get all supported stocks from web search
+ * Get all supported stocks from web search - 2025 LATEST
  * @returns {Promise<Array>} List of popular stocks
  */
 export const getSupportedStocks = async () => {
   try {
-    console.log('📊 Fetching popular Indian stocks');
+    console.log('📊 Fetching popular Indian stocks 2025');
     
-    const results = await searchWithBackend('top NSE BSE stocks today');
+    const results = await searchWithBackend('top NSE BSE stocks today 2025 latest trading');
     
     const stocks = [];
-    for (const result of results.slice(0, 8)) {
+    for (const result of results.slice(0, 12)) {
       const symbolMatch = result.title.match(/([A-Z]+(?:\.[A-Z]+)?)/);
       if (symbolMatch) {
         stocks.push({
@@ -205,14 +221,14 @@ const getDefaultStocks = () => [
 ];
 
 /**
- * Search DuckDuckGo (uses backend proxy)
+ * Search DuckDuckGo (uses backend proxy) - 2025 LATEST
  * @param {string} query - Search query
  * @returns {Promise<Array>} Search results
  */
 export const searchDuckDuckGo = async (query) => {
   try {
-    console.log('🔍 DuckDuckGo Search:', query);
-    return await searchWithBackend(query);
+    console.log('🔍 DuckDuckGo Search 2025 Latest:', query);
+    return await searchWithBackend(query + ' 2025 latest today');
   } catch (error) {
     console.warn('⚠️ Search error:', error.message);
     return [];

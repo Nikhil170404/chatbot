@@ -1,12 +1,12 @@
 /**
  * Backend Service - Calls deployed DuckDuckGo proxy at https://duckduckgo-49y2.onrender.com
- * Handles all web search and article fetching
+ * Handles all web search and article fetching - UPDATED FOR 2025 LATEST DATA
  */
 
 const BACKEND_URL = 'https://duckduckgo-49y2.onrender.com';
 
 /**
- * Search using DuckDuckGo backend
+ * Search using DuckDuckGo backend - UPDATED FOR LATEST 2025 DATA
  * @param {string} query - Search query
  * @returns {Promise<Array>} Search results with title, snippet, link
  */
@@ -16,7 +16,7 @@ export const searchWithBackend = async (query) => {
   }
 
   try {
-    console.log('🔍 Backend Search:', query);
+    console.log('🔍 Backend Search (2025 LATEST):', query);
     
     const response = await fetch(
       `${BACKEND_URL}/search?q=${encodeURIComponent(query)}`,
@@ -35,6 +35,7 @@ export const searchWithBackend = async (query) => {
 
     const results = await response.json();
     console.log('✅ Backend search results:', results.length, 'results found');
+    console.log('📅 Searching for latest 2025 data...');
     return results || [];
   } catch (error) {
     console.error('❌ Backend search error:', error.message);
@@ -80,13 +81,13 @@ export const fetchArticleWithBackend = async (url) => {
 };
 
 /**
- * Search for stock news and data
+ * Search for stock news and data - UPDATED FOR 2025 LATEST
  * @param {string} symbol - Stock symbol (e.g., "RELIANCE.BSE")
  * @param {string} name - Stock name (e.g., "Reliance Industries")
  * @returns {Promise<Object>} Stock data with news
  */
 export const searchStockNews = async (symbol, name) => {
-  const query = `${name || symbol} stock price NSE BSE`;
+  const query = `${name || symbol} stock price today 2025 latest live NSE BSE`;
   
   try {
     const results = await searchWithBackend(query);
@@ -95,19 +96,21 @@ export const searchStockNews = async (symbol, name) => {
       return null;
     }
 
-    console.log('📊 Found', results.length, 'stock news results');
+    console.log('📊 Found', results.length, 'stock news results for 2025');
 
     return {
       symbol: symbol.replace(/\.(BSE|NS|BO)$/i, ''),
       name: name || symbol,
-      sources: results.slice(0, 5).map(r => ({
+      sources: results.slice(0, 15).map(r => ({  // Increased from 5 to 15
         title: r.title,
         snippet: r.snippet,
         url: r.link,
         domain: new URL(r.link).hostname
       })),
-      timestamp: new Date().toLocaleTimeString('en-IN'),
-      source: 'DuckDuckGo Backend',
+      timestamp: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      source: '🔴 LIVE DuckDuckGo 2025 Latest',
+      year: new Date().getFullYear(),
       topSnippet: results[0]?.snippet || ''
     };
   } catch (error) {
@@ -117,11 +120,11 @@ export const searchStockNews = async (symbol, name) => {
 };
 
 /**
- * Get market news
+ * Get market news - UPDATED FOR 2025
  * @param {string} query - News query
  * @returns {Promise<Array>} News articles
  */
-export const getMarketNews = async (query = 'Indian stock market news today') => {
+export const getMarketNews = async (query = 'Indian stock market news today 2025 latest') => {
   try {
     const results = await searchWithBackend(query);
     console.log('📰 Found', results.length, 'market news articles');
@@ -133,47 +136,59 @@ export const getMarketNews = async (query = 'Indian stock market news today') =>
 };
 
 /**
- * Get comprehensive stock information
+ * Get comprehensive stock information - UPDATED FOR 2025 LATEST
  * @param {string} symbol - Stock symbol
  * @param {string} name - Stock name
  * @returns {Promise<Object>} Comprehensive stock data
  */
 export const getStockInformation = async (symbol, name) => {
   try {
-    // Search for current price and news
-    const priceQuery = `${name || symbol} current stock price today`;
+    // Search for CURRENT PRICE with 2025 focus
+    const priceQuery = `${name || symbol} current stock price today 2025 latest live rupees`;
     const priceResults = await searchWithBackend(priceQuery);
 
-    // Search for company info
-    const infoQuery = `${name || symbol} company information about`;
-    const infoResults = await searchWithBackend(infoQuery);
+    // Search for TODAY'S MARKET DATA
+    const marketQuery = `${name || symbol} stock market today 2025 live trading NSE BSE`;
+    const marketResults = await searchWithBackend(marketQuery);
 
-    // Search for analysis
-    const analysisQuery = `${name || symbol} stock analysis technical analysis`;
+    // Search for RECENT PERFORMANCE
+    const performanceQuery = `${name || symbol} stock performance today 2025 latest changes`;
+    const performanceResults = await searchWithBackend(performanceQuery);
+
+    // Search for ANALYSIS & NEWS
+    const analysisQuery = `${name || symbol} stock analysis today 2025 news update`;
     const analysisResults = await searchWithBackend(analysisQuery);
+
+    const allResults = [
+      ...priceResults.slice(0, 5),
+      ...marketResults.slice(0, 4),
+      ...performanceResults.slice(0, 3),
+      ...analysisResults.slice(0, 3)
+    ];
 
     return {
       symbol: symbol.replace(/\.(BSE|NS|BO)$/i, ''),
       name: name || symbol,
       price: {
-        results: priceResults.slice(0, 3),
+        results: priceResults.slice(0, 5),
         snippet: priceResults[0]?.snippet || 'Price information not available'
       },
-      info: {
-        results: infoResults.slice(0, 3),
-        snippet: infoResults[0]?.snippet || 'Company information not available'
+      market: {
+        results: marketResults.slice(0, 4),
+        snippet: marketResults[0]?.snippet || 'Market data not available'
+      },
+      performance: {
+        results: performanceResults.slice(0, 3),
+        snippet: performanceResults[0]?.snippet || 'Performance data not available'
       },
       analysis: {
         results: analysisResults.slice(0, 3),
         snippet: analysisResults[0]?.snippet || 'Analysis not available'
       },
-      allSources: [
-        ...priceResults.slice(0, 2),
-        ...infoResults.slice(0, 2),
-        ...analysisResults.slice(0, 1)
-      ],
-      timestamp: new Date().toLocaleTimeString('en-IN'),
-      source: 'DuckDuckGo Backend Search'
+      allSources: allResults,
+      timestamp: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      source: '🔴 LIVE DuckDuckGo 2025 Latest - Maximum Context'
     };
   } catch (error) {
     console.error('❌ Stock information error:', error.message);
