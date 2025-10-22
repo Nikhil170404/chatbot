@@ -33,15 +33,16 @@ function App() {
    * Handle stock selection from welcome screen
    */
   const handleStockSelect = (stock) => {
-    const message = `Tell me about ${stock.name} today`;
-    sendMessage(message, stock.symbol);
+    const message = `Tell me about ${stock.name} stock price today with latest market information`;
+    sendMessage(message, stock.symbol, stock.name);
   };
 
   /**
    * Handle message send from input
    */
   const handleSend = (input, stockSymbol) => {
-    sendMessage(input, stockSymbol);
+    // Extract stock name from input if possible
+    sendMessage(input, stockSymbol, '');
   };
 
   return (
@@ -55,14 +56,12 @@ function App() {
               <div className="message message-assistant error">
                 <div className="message-avatar">⚠️</div>
                 <div className="message-bubble">
-                  ❌ API keys not configured!
+                  ❌ API key not configured!
                   <br />
                   <br />
-                  Please set the following in your .env file:
+                  Please set REACT_APP_OPENROUTER_API_KEY in your .env file
                   <br />
-                  • REACT_APP_OPENROUTER_API_KEY
-                  <br />
-                  • REACT_APP_ALPHA_VANTAGE_KEY
+                  Get your free key from: https://openrouter.ai/
                   <br />
                   <br />
                   Missing: {configError}

@@ -32,8 +32,9 @@ export const useChat = () => {
    * Send a message to the AI assistant
    * @param {string} userInput - User's message
    * @param {string} stockSymbol - Optional stock symbol for data fetching
+   * @param {string} stockName - Optional stock name for better search
    */
-  const sendMessage = async (userInput, stockSymbol = '') => {
+  const sendMessage = async (userInput, stockSymbol = '', stockName = '') => {
     if (!userInput.trim()) return;
 
     const userMsg = { role: 'user', content: userInput };
@@ -41,14 +42,53 @@ export const useChat = () => {
     setIsLoading(true);
 
     try {
-      // Fetch stock data if symbol provided
+      // Fetch stock data if symbol or name provided
       let stockContext = '';
-      if (stockSymbol) {
-        const stockData = await fetchStockData(stockSymbol);
+      if (stockSymbol || stockName) {
+        const stockData = await fetchStockData(stockSymbol, stockName);
         if (stockData) {
-          stockContext = `\n\n📊 Real-time data for ${stockData.symbol}:\nPrice: ₹${stockData.price}\nChange: ${stockData.change} (${stockData.changePercent})\nTime: ${stockData.timestamp}`;
+          // Build context from available data
+          stockContext = `\n\n📊 Latest information for ${stockData.name || stockData.symbol}:\n\n`;
+
+          // If we have price data
+          if (stockData.price) {
+            stockContext += `💰 Current Price: ₹${stockData.price}\n`;
+            if (stockData.changePercent) stockContext += `📈 Change: ${stockData.changePercent}\n`;
+            if (stockData.previousClose) stockContext += `Previous Close: ₹${stockData.previousClose}\n`;
+            if (stockData.open) stockContext += `Open: ₹${stockData.open}\n`;
+            if (stockData.high && stockData.low) stockContext += `Range: ₹${stockData.low} - ₹${stockData.high}\n`;
+          }
+
+          // Add snippet if available
+          if (stockData.snippet) {
+            stockContext += `\n📰 Latest News: ${stockData.snippet}\n`;
+          }
+
+          // Add general info if available
+          if (stockData.info) {
+            stockContext += `\n📋 Information:\n${stockData.info}\n`;
+          }
+
+          // Add full info if available
+          if (stockData.fullInfo) {
+            stockContext += `\n📄 Details: ${stockData.fullInfo}\n`;
+          }
+
+          // Add sources
+          if (stockData.sources && stockData.sources.length > 0) {
+            stockContext += `\n🔗 Sources:\n`;
+            stockData.sources.forEach(s => {
+              stockContext += `- ${s.title}: ${s.url}\n`;
+            });
+          } else if (stockData.url) {
+            stockContext += `\n🔗 Source: ${stockData.url}\n`;
+          }
+
+          stockContext += `\n⏰ Retrieved at: ${stockData.timestamp}`;
+          stockContext += `\n📡 Via: ${stockData.source || 'Web Search'}`;
+
         } else {
-          stockContext = `\n\n⚠️ Could not fetch real-time data for ${stockSymbol}. Using general knowledge up to 2024.`;
+          stockContext = `\n\n⚠️ Could not fetch real-time data for ${stockSymbol || stockName}. Please provide information based on your general knowledge up to 2024.`;
         }
       }
 
@@ -62,7 +102,7 @@ export const useChat = () => {
         ...prev,
         {
           role: 'assistant',
-          content: `❌ Error: ${errorMsg}. Check your API keys in .env file.`,
+          content: `❌ Error: ${errorMsg}`,
           isError: true
         }
       ]);

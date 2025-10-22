@@ -1,36 +1,31 @@
-import axios from 'axios';
-import { config } from '../utils/config';
+import { fetchStockDataFromWeb } from './webSearchService';
 
 /**
- * Fetch real-time stock data from Alpha Vantage API
+ * Fetch real-time stock data using DuckDuckGo web search
  * @param {string} symbol - Stock symbol (e.g., "RELIANCE.BSE")
+ * @param {string} name - Stock name (optional, e.g., "Reliance Industries")
  * @returns {Promise<Object|null>} Stock data or null if error
  */
-export const fetchStockData = async (symbol) => {
-  if (!symbol || !config.alphaVantageApiKey) {
+export const fetchStockData = async (symbol, name = '') => {
+  if (!symbol && !name) {
     return null;
   }
 
   try {
-    const response = await axios.get(
-      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${config.alphaVantageApiKey}`
-    );
+    console.log('📊 Fetching stock data for:', symbol, name);
 
-    const quote = response.data['Global Quote'];
+    // Use web search to get stock information
+    const stockData = await fetchStockDataFromWeb(symbol, name);
 
-    if (quote && quote['01. symbol']) {
-      return {
-        symbol: quote['01. symbol'],
-        price: quote['05. price'],
-        change: quote['09. change'],
-        changePercent: quote['10. change percent'],
-        timestamp: new Date().toLocaleTimeString('en-IN')
-      };
+    if (stockData) {
+      console.log('✅ Stock data retrieved:', stockData);
+      return stockData;
     }
 
+    console.log('⚠️ No stock data found');
     return null;
   } catch (error) {
-    console.warn('Alpha Vantage error:', error.message);
+    console.error('❌ Stock data fetch error:', error.message);
     return null;
   }
 };
