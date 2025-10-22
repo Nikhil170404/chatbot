@@ -1,4 +1,4 @@
-import axios from 'axios';
+
 
 // Stock data mapping - Comprehensive Indian stock data
 const STOCK_DATA_DB = {

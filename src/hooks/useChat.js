@@ -48,44 +48,44 @@ export const useChat = () => {
         const stockData = await fetchStockData(stockSymbol, stockName);
         if (stockData) {
           // Build context from available data
-          stockContext = `\n\n📊 Latest information for ${stockData.name || stockData.symbol}:\n\n`;
+          stockContext = `\n\n📊 **Stock Information:** ${stockData.name || stockData.symbol}\n\n`;
 
           // If we have price data
           if (stockData.price) {
-            stockContext += `💰 Current Price: ₹${stockData.price}\n`;
-            if (stockData.changePercent) stockContext += `📈 Change: ${stockData.changePercent}\n`;
-            if (stockData.previousClose) stockContext += `Previous Close: ₹${stockData.previousClose}\n`;
-            if (stockData.open) stockContext += `Open: ₹${stockData.open}\n`;
-            if (stockData.high && stockData.low) stockContext += `Range: ₹${stockData.low} - ₹${stockData.high}\n`;
+            stockContext += `💰 **Current Price:** ₹${stockData.price}\n`;
+            if (stockData.changePercent) stockContext += `📈 **Change:** ${stockData.changePercent}\n`;
+            if (stockData.previousClose) stockContext += `**Previous Close:** ₹${stockData.previousClose}\n`;
+            if (stockData.open) stockContext += `**Open:** ₹${stockData.open}\n`;
+            if (stockData.high && stockData.low) stockContext += `**Range:** ₹${stockData.low} - ₹${stockData.high}\n`;
+          }
+
+          // Add company info if available
+          if (stockData.info) {
+            stockContext += `\n📋 **Company Info:**\n${stockData.info}\n`;
           }
 
           // Add snippet if available
           if (stockData.snippet) {
-            stockContext += `\n📰 Latest News: ${stockData.snippet}\n`;
-          }
-
-          // Add general info if available
-          if (stockData.info) {
-            stockContext += `\n📋 Information:\n${stockData.info}\n`;
+            stockContext += `\n📰 **Latest News:**\n${stockData.snippet}\n`;
           }
 
           // Add full info if available
           if (stockData.fullInfo) {
-            stockContext += `\n📄 Details: ${stockData.fullInfo}\n`;
+            stockContext += `\n📄 **Details:**\n${stockData.fullInfo}\n`;
           }
 
           // Add sources
           if (stockData.sources && stockData.sources.length > 0) {
-            stockContext += `\n🔗 Sources:\n`;
+            stockContext += `\n🔗 **Sources:**\n`;
             stockData.sources.forEach(s => {
-              stockContext += `- ${s.title}: ${s.url}\n`;
+              stockContext += `- [${s.title}](${s.url})\n`;
             });
           } else if (stockData.url) {
-            stockContext += `\n🔗 Source: ${stockData.url}\n`;
+            stockContext += `\n🔗 **Source:** ${stockData.url}\n`;
           }
 
-          stockContext += `\n⏰ Retrieved at: ${stockData.timestamp}`;
-          stockContext += `\n📡 Via: ${stockData.source || 'Web Search'}`;
+          stockContext += `\n⏰ **Retrieved at:** ${stockData.timestamp}`;
+          stockContext += `\n📡 **Via:** ${stockData.source || 'Web Search'}`;
 
         } else {
           stockContext = `\n\n⚠️ Could not fetch real-time data for ${stockSymbol || stockName}. Please provide information based on your general knowledge up to 2024.`;
@@ -94,15 +94,23 @@ export const useChat = () => {
 
       // Get AI response
       const aiResponse = await sendChatRequest(messages, userInput, stockContext);
-      setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+      
+      // Add AI response to messages
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: aiResponse,
+        isStockData: !!stockContext
+      }]);
+      
+      console.log('✅ AI Response added to chat:', aiResponse);
     } catch (error) {
       const errorMsg = error.response?.data?.error?.message || error.message;
-      console.error('Chat error:', errorMsg);
+      console.error('❌ Chat error:', errorMsg);
       setMessages(prev => [
         ...prev,
         {
           role: 'assistant',
-          content: `❌ Error: ${errorMsg}`,
+          content: `❌ Error: ${errorMsg}\n\nTroubleshooting:\n• Check your OpenRouter API key\n• Ensure you have credits\n• Try again in a moment`,
           isError: true
         }
       ]);
