@@ -1,83 +1,62 @@
-// src/components/ChatInput.jsx
 import React, { useState } from 'react';
 
-const ChatInput = ({ onSend }) => {
+/**
+ * ChatInput Component - Input area for user messages and stock symbols
+ * @param {Object} props
+ * @param {Function} props.onSend - Callback when user sends a message
+ * @param {boolean} props.isLoading - Whether the chat is processing
+ */
+const ChatInput = React.memo(({ onSend, isLoading }) => {
   const [input, setInput] = useState('');
   const [stockSymbol, setStockSymbol] = useState('');
-  const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!input.trim() && !imageUrl) return;
-    onSend(input, imageUrl, stockSymbol.toUpperCase().trim());
+  const handleSend = () => {
+    if (!input.trim() || isLoading) return;
+    onSend(input, stockSymbol);
     setInput('');
     setStockSymbol('');
-    setImageUrl(null);
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !isLoading) {
+      handleSend();
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-3 border-t bg-white">
-      <div className="flex gap-2 mb-2">
+    <div className="input-area">
+      <div className="input-fields">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about any stock (e.g., 'Is TSLA overvalued?')"
-          className="flex-1 p-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="Ask about any Indian stock..."
+          className="input-field main-input"
+          onKeyPress={handleKeyPress}
+          disabled={isLoading}
         />
         <input
           type="text"
           value={stockSymbol}
           onChange={(e) => setStockSymbol(e.target.value)}
-          placeholder="Ticker (e.g. AAPL)"
-          className="w-28 p-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+          placeholder="Stock ticker (e.g. RELIANCE.BSE)"
+          className="input-field ticker-input"
+          onKeyPress={handleKeyPress}
+          disabled={isLoading}
         />
       </div>
-      
-      <div className="flex items-center justify-between">
-        <label className="cursor-pointer bg-gray-100 px-3 py-1 rounded text-sm flex items-center">
-          📎 Upload Chart
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-        </label>
-        
-        <button
-          type="submit"
-          disabled={!input.trim() && !imageUrl}
-          className={`px-4 py-2 rounded font-medium ${
-            (!input.trim() && !imageUrl)
-              ? 'bg-gray-300 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-        >
-          Send
-        </button>
-      </div>
 
-      {imageUrl && (
-        <div className="mt-2 flex items-center gap-2">
-          <img src={imageUrl} alt="Preview" className="h-12 w-12 object-cover rounded" />
-          <span className="text-sm text-gray-600">Image attached</span>
-        </div>
-      )}
-    </form>
+      <button
+        onClick={handleSend}
+        disabled={!input.trim() || isLoading}
+        className="send-btn"
+      >
+        {isLoading ? 'Loading...' : 'Send'}
+      </button>
+    </div>
   );
-};
+});
+
+ChatInput.displayName = 'ChatInput';
 
 export default ChatInput;

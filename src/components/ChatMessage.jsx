@@ -1,25 +1,34 @@
-// src/components/ChatMessage.jsx
 import React from 'react';
-import { FaUser, FaChartLine } from 'react-icons/fa';
 
-const ChatMessage = ({ message }) => {
-  const isUser = message.role === 'user';
+/**
+ * ChatMessage Component - Displays a single chat message
+ * @param {Object} props
+ * @param {Object} props.message - Message object with role and content
+ * @param {string} props.message.role - 'user' or 'assistant'
+ * @param {string} props.message.content - Message text
+ * @param {boolean} props.message.isError - Whether this is an error message
+ */
+const ChatMessage = React.memo(({ message }) => {
+  const { role, content, isError } = message;
+
+  const getAvatar = () => {
+    if (role === 'user') return '👤';
+    if (isError) return '⚠️';
+    return '📊';
+  };
+
   return (
-    <div className={`flex items-start gap-3 mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`p-3 rounded-lg max-w-xs lg:max-w-2xl break-words ${
-        isUser 
-          ? 'bg-blue-500 text-white' 
-          : 'bg-gray-100 text-gray-800 border border-gray-200'
-      }`}>
-        {isUser ? (
-          <FaUser className="inline mr-2 mb-1" />
-        ) : (
-          <FaChartLine className="inline mr-2 mb-1 text-green-600" />
-        )}
-        {message.content}
+    <div className={`message message-${role} ${isError ? 'error' : ''}`}>
+      <div className="message-avatar">
+        {getAvatar()}
+      </div>
+      <div className="message-bubble">
+        {content}
       </div>
     </div>
   );
-};
+});
+
+ChatMessage.displayName = 'ChatMessage';
 
 export default ChatMessage;
